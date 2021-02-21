@@ -3,41 +3,52 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 
 class Pricing
 {
+    public Collection $pricingoptions;
+
+    public Pricingoption $pricingoption;
+
     public Purchasable $purchasable;
 
     public User $user;
 
-    public function __construct(User $user)
+    public Venue $venue;
+
+    public function __construct(Purchasable $purchasable, Venue $venue, User $user)
     {
+        $this->purchasable = $purchasable;
+        $this->venue = $venue;
         $this->user = $user;
     }
 
-    public function addPurchasable(Purchasable $purchasable): self
+    public function getPricingOptions(): self
     {
-        $this->purchasable = $purchasable;
+        $this->pricingoptions = Pricingoption::whereIn('purchasabletype_id', $this->purchasable->types->pluck('id'))->get();
 
         return $this;
     }
 
-    public function getPricingAdjustments(int $venue_id): self
+    public function applyAdjustments(): self
     {
-        $this->purchasable->priceincentsAdjusted = $this->purchasable->priceincents;
+        foreach ($this->pricingoptions as $this->pricingoption) {
+            $this->pricingoption->priceincentsAdjusted = $this->pricingoption->priceincents;
 
-        PricingAdjustment::where('membership_type_id', $this->user->membership_type_id)
-            ->where('venue_id', $venue_id)
-            ->where('age_start', '<=', Carbon::today()->diffInYears($this->user->dob))
-            ->where('age_end', '>=', Carbon::today()->diffInYears($this->user->dob))
-            ->each(function ($pricingAdjustment) {
-                $this->runAllAdjustmentMethods($pricingAdjustment);
-            });
+            PricingAdjustment::where('membership_type_id', $this->user->membership_type_id)
+                ->where('venue_id', $this->venue->id)
+                ->where('age_start', '<=', Carbon::today()->diffInYears($this->user->dob))
+                ->where('age_end', '>=', Carbon::today()->diffInYears($this->user->dob))
+                ->each(function ($pricingAdjustment) {
+                    $this->applyAllAdjustmentsMethods($pricingAdjustment);
+                });
+        }
 
         return $this;
     }
 
-    public function runAllAdjustmentMethods(PricingAdjustment $pricingAdjustment): void
+    public function applyAllAdjustmentsMethods(PricingAdjustment $pricingAdjustment): void
     {
         $this->setPriceincentsAdjustedOffset($pricingAdjustment);
         $this->setPriceincentsAdjustedFixed($pricingAdjustment);
@@ -46,12 +57,12 @@ class Pricing
 
     public function getCheapest(): int
     {
-        return $this->purchasable->priceincentsAdjusted;
+        return $this->pricingoption->priceincentsAdjusted;
     }
 
     public function getAdjustMethodUsed(): string
     {
-        return $this->purchasable->adjust_methodUsed;
+        return $this->pricingoption->adjust_methodUsed;
     }
 
     public function setPriceincentsAdjustedOffset(PricingAdjustment $pricingAdjustment): void
@@ -62,7 +73,7 @@ class Pricing
             return;
         }
 
-        $priceincentsAdjusted = $this->purchasable->priceincents + $pricingAdjustment->adjust_value;
+        $priceincentsAdjusted = $this->pricingoption->priceincents + $pricingAdjustment->adjust_value;
 
         $this->setPriceincentsAdjusted($priceincentsAdjusted, $adjustMethod);
     }
@@ -88,18 +99,16 @@ class Pricing
             return;
         }
 
-        $priceincentsAdjusted = $this->purchasable->priceincents * $pricingAdjustment->adjust_value / 100;
+        $priceincentsAdjusted = $this->pricingoption->priceincents + ($this->pricingoption->priceincents * $pricingAdjustment->adjust_value / 100);
 
         $this->setPriceincentsAdjusted($priceincentsAdjusted, $adjustMethod);
     }
 
     public function setPriceincentsAdjusted(int $priceincentsAdjusted, string $adjustMethod): void
     {
-        // $this->purchasable->priceincentsAdjusted = min($this->purchasable->priceincentsAdjusted, $priceincentsAdjusted);
-
-        if ($priceincentsAdjusted < $this->purchasable->priceincentsAdjusted) {
-            $this->purchasable->priceincentsAdjusted = $priceincentsAdjusted;
-            $this->purchasable->adjust_methodUsed = $adjustMethod;
+        if ($priceincentsAdjusted < $this->pricingoption->priceincentsAdjusted) {
+            $this->pricingoption->priceincentsAdjusted = $priceincentsAdjusted;
+            $this->pricingoption->adjust_methodUsed = $adjustMethod;
         }
     }
 }

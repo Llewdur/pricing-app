@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 class CreatePricingoptionsTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
     {
         Schema::create('pricingoptions', function (Blueprint $table) {
@@ -16,14 +13,12 @@ class CreatePricingoptionsTable extends Migration
 
             $table->string('name')->unique();
             $table->integer('priceincents')->unsigned();
+            $table->bigInteger('purchasabletype_id')->unsigned();
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down()
     {
         Schema::dropIfExists('pricingoptions');

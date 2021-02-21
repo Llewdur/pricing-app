@@ -9,7 +9,8 @@ class Purchasable extends Model
 {
     use HasFactory;
 
-    public string $adjust_methodUsed = '';
-
-    public int $priceincentsAdjusted;
+    public function types()
+    {
+        return $this->belongsToMany(Purchasabletype::class);
+    }
 }

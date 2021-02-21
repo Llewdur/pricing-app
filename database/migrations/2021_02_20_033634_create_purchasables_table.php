@@ -15,8 +15,6 @@ class CreatePurchasablesTable extends Migration
             $table->integer('id')->autoIncrement()->unsigned();
 
             $table->string('name')->unique();
-            $table->integer('priceincents')->unsigned();
-            $table->enum('type', ['class', 'product']);
 
             $table->timestamps();
         });

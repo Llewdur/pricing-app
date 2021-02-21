@@ -2,19 +2,19 @@
 
 namespace Database\Factories;
 
-use App\Models\Pricingoption;
+use App\Models\Purchasable;
+use App\Models\PurchasablePurchasabletype;
 use App\Models\Purchasabletype;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class PricingoptionFactory extends Factory
+class PurchasablePurchasabletypeFactory extends Factory
 {
-    protected $model = Pricingoption::class;
+    protected $model = PurchasablePurchasabletype::class;
 
     public function definition()
     {
         return [
-            'name' => $this->faker->unique()->word(),
-            'priceincents' => rand(100, 10000),
+            'purchasable_id' => Purchasable::inRandomOrder()->firstOrFail()->id,
             'purchasabletype_id' => Purchasabletype::inRandomOrder()->firstOrFail()->id,
         ];
     }

@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Purchasable;
+use App\Models\Purchasabletype;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-class PurchasableFactory extends Factory
+class PurchasabletypeFactory extends Factory
 {
-    protected $model = Purchasable::class;
+    protected $model = Purchasabletype::class;
 
     public function definition()
     {

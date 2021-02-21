@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Pricingoption;
 use App\Models\Purchasabletype;
 use Illuminate\Database\Seeder;
 
-class PricingoptionTableSeeder extends Seeder
+class PurchasabletypeTableSeeder extends Seeder
 {
     public const DEFAULT_ARRAY = [
         'Standard-class',
@@ -20,15 +19,13 @@ class PricingoptionTableSeeder extends Seeder
         foreach (self::DEFAULT_ARRAY as $id => $name) {
             $id++;
 
-            Pricingoption::updateOrCreate(
+            Purchasabletype::updateOrCreate(
                 [
                     'id' => $id,
                 ],
                 [
                     'id' => $id,
                     'name' => $name,
-                    'priceincents' => rand(100, 10000),
-                    'purchasabletype_id' => Purchasabletype::inRandomOrder()->firstOrFail()->id,
                 ]);
         }
     }
